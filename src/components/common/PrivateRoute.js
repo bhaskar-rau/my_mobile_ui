@@ -1,16 +1,28 @@
-import { useNavigate } from "react-router-dom";
-
-import { useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { CircularProgress, Box } from "@mui/material";
 import { useAuth } from "./AuthContext";
+
 export const PrivateRoute = ({ children }) => {
-  const { isLoggedIn } = useAuth();
-  const navigate = useNavigate();
+  const { isLoggedIn, isLoading } = useAuth();
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/login");
-    }
-  }, [isLoggedIn, navigate]);
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-  return isLoggedIn ? children : null;
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 };

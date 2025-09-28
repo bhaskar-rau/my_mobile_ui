@@ -14,7 +14,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../../utils/apiClient";
 
 export const SigninForm = () => {
   const { login } = useAuth();
@@ -142,17 +142,9 @@ export const SigninForm = () => {
         userPassword: formData.userPassword.trim(),
       };
 
-      const response = await axios({
-        method: "post",
-        url: "http://192.168.0.124:9998/user/login",
-        data: requestData,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        timeout: 10000, // 10 second timeout
-      });
+      const response = await apiClient.post("/user/login", requestData);
 
-      const data = response.data;
+      const { user, token, refreshToken, expiresIn } = response.data;
 
       // Reset login attempts on success
       setLoginAttempts(0);
@@ -160,15 +152,20 @@ export const SigninForm = () => {
 
       setNotification({
         open: true,
-        message: `Welcome back! Redirecting to ${data.userRole === "VENDOR" ? "vendor" : "customer"} dashboard...`,
+        message: `Welcome back! Redirecting to ${user.userRole === "VENDOR" ? "vendor" : "customer"} dashboard...`,
         severity: 'success'
       });
 
-      login(data);
+      // Store refresh token if provided
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+      }
+
+      login(user, token, expiresIn ? expiresIn * 1000 : undefined);
 
       // Delay navigation to show success message
       setTimeout(() => {
-        if (data.userRole === "VENDOR") {
+        if (user.userRole === "VENDOR") {
           navigate("/vendor/products");
         } else {
           navigate("/customer/products");

@@ -3,39 +3,37 @@ import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
 import { LogoutOutlined } from "@mui/icons-material";
 import { useAuth } from "../../components/common/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../../utils/apiClient";
 
 const Header = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
-  const userData = JSON.parse(localStorage.getItem("user"));
-  const formattedLoginTime = userData?.lastLoginTime
-  ? new Date(userData.lastLoginTime).toLocaleString()
-  : null;
+  
+  const formattedLoginTime = user?.lastLoginTime
+    ? new Date(user.lastLoginTime).toLocaleString()
+    : null;
 
   const handleLogout = async () => {
     try {
-      const userData = JSON.parse(localStorage.getItem("user"));
-      if (!userData || !userData.userId) {
+      if (!user?.userId) {
         console.error("No user ID found");
         logout();
         navigate("/login");
         return;
       }
 
-      const response = await axios({
-        method: "put",
-        url: `http://192.168.0.124:9998/logout/${userData.userId}`,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("Logout successful:", response.data);
+      // Call logout endpoint
+      await apiClient.put(`/logout/${user.userId}`);
+      
+      // Clear refresh token
+      localStorage.removeItem('refreshToken');
+      
+      console.log("Logout successful");
       logout();
       navigate("/login");
     } catch (error) {
       console.error("Logout error:", error);
+      // Force logout even if API call fails
       logout();
       navigate("/login");
     }
@@ -85,7 +83,7 @@ const Header = () => {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          {userData?.userId && (
+          {user?.userId && (
             <Box
               sx={{
                 display: "flex",
@@ -104,7 +102,7 @@ const Header = () => {
                   fontSize: "0.9rem",
                 }}
               >
-                {"Logged In As: " + userData.userName}
+                {"Logged In As: " + user.userName}
               </Typography>
 
               {formattedLoginTime && (
@@ -114,7 +112,6 @@ const Header = () => {
                     fontFamily: "monospace",
                     color: "white",
                     fontSize: "0.9rem",
-                  //  fontStyle: "italic",
                   }}
                 >
                   {" | Last Logged in at: " + formattedLoginTime}

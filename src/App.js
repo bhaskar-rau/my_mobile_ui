@@ -15,6 +15,7 @@ import { PrivateRoute } from "./components/common/PrivateRoute";
 import Header from "./components/common/HeaderComponent";
 import { Box } from "@mui/material";
 import { useAuth } from "./components/common/AuthContext";
+import { useTokenRefresh } from "./hooks/useTokenRefresh";
 import ProductForm from "./components/vendor/CreateProductForm";
 import ProductsList from "./components/customer/ProductsList";
 import { Provider } from "react-redux";
@@ -22,12 +23,13 @@ import store from "./redux/Store";
 import Cart from "./components/customer/Cart";
 
 const RoleBasedRoute = ({ children, allowedRole }) => {
-  const userData = JSON.parse(localStorage.getItem("user"));
-  const userRole = userData?.userRole;
+  const { user, isLoggedIn } = useAuth();
 
-  if (!userRole) {
+  if (!isLoggedIn || !user) {
     return <Navigate to="/login" replace />;
   }
+
+  const userRole = user.userRole;
 
   if (userRole !== allowedRole) {
     return (
@@ -42,15 +44,31 @@ const RoleBasedRoute = ({ children, allowedRole }) => {
 };
 
 const AppContent = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user, isLoading } = useAuth();
   const location = useLocation();
-  const userData = JSON.parse(localStorage.getItem("user"));
-  const userRole = userData?.userRole;
+
+  // Initialize token refresh functionality
+  useTokenRefresh();
 
   const getDefaultRoute = () => {
     if (!isLoggedIn) return "/login";
-    return userRole === "VENDOR" ? "/vendor/products" : "/customer/products";
+    return user?.userRole === "VENDOR" ? "/vendor/products" : "/customer/products";
   };
+
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        Loading...
+      </Box>
+    );
+  }
 
   return (
     <Box

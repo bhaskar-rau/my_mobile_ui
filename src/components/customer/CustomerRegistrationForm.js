@@ -16,8 +16,8 @@ import {
   setFormData,
   resetFormData,
 } from "../../redux/customerSlice";
-import { validateField } from "./validation"; 
-import {customerFields} from "./fields"
+import { validateField } from "./validation";
+import { customerFields } from "./fields"
 
 import RegistrationSuccess from "../common/RegistrationSuccess";
 
@@ -26,21 +26,21 @@ const CustomerRegistrationForm = () => {
   const { status, error, response } = useSelector((state) => state.customer);
   const formData = useSelector((state) => state.customer);
 
-  const [showSuccess , setShowSuccess] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [errors, setErrors] = useState({});
   const [countryCode, setCountryCode] = useState("+91");
 
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    
+
     if (name === "userId") {
       const alphaNumericRegex = /^[A-Z0-9]*$/;
-      if (!alphaNumericRegex.test(value)) return; 
+      if (!alphaNumericRegex.test(value)) return;
     }
     if (name === "userNumber" || name === "userPincode") {
-      if (!/^\d*$/.test(value)) return; 
+      if (!/^\d*$/.test(value)) return;
     }
 
     dispatch(setFormData({ name, value }));
@@ -49,7 +49,7 @@ const CustomerRegistrationForm = () => {
     setErrors((prevErrors) => ({ ...prevErrors, [name]: fieldError }));
   };
 
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -90,7 +90,14 @@ const CustomerRegistrationForm = () => {
         }}
       >
         <Box sx={{ width: "100%", maxWidth: "80%", padding: "20px" }}>
-          <Typography variant="h4" gutterBottom sx={{ textAlign: "center" }}>
+          <Typography
+            variant="h4"
+            sx={{
+              textAlign: "center",
+              mb: 4,
+              fontFamily: "monospace"
+            }}
+          >
             Customer Registration
           </Typography>
           <form onSubmit={handleSubmit}>
